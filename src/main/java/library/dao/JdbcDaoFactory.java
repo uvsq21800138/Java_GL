@@ -36,10 +36,10 @@ public class JdbcDaoFactory {
   private final Connection connection;
 
   /** Constructeur. */
-  public JdbcDaoFactory(Connection connection) throws SQLException {
+  public JdbcDaoFactory(DbUrl db) throws SQLException {
     this.connection =
         DriverManager.getConnection(
-            DbUrl.MySql.getUrl(), DbUrl.MySql.getUser(), DbUrl.MySql.getPw());
+            db.getUrl(), db.getUser(), db.getPw());
   }
 
   public AuthorDao getAuthorDao() {

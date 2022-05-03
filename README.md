@@ -62,10 +62,32 @@ Dans la suite, on suppose l'existence de la classe abstraite [DAO<T>](./src/main
 5. Donnez le squelette (déclaration et signature des méthodes) des classes DAO nécessaires.
     JdbcDaoFactory ; AuthorDao ; BookDao
 6. Donnez l'implémentation de la méthode AuteurDAO.create qui rend persistant un auteur. En particulier, proposez une solution pour la persistance de l'association auteur-livre.
+    Solution à travers la table relationnel write.
 7. Donnez l'implémentation de la méthode AuteurDAO.find qui recherche un auteur à partir de son nom.
 
 Dans la suite, on suppose que les classes DAO sont totalement implémentées.
 8. Donnez l'extrait de code qui crée deux auteurs, les deux livres qu'ils ont écrits et rend les objets persistants.
+``` Java
+    Author jkr = new Author("JK. Rowling", "Jk.rowling@gmail.com");
+    Author tolkien = new Author("JRR. Tolkien", "Jrr.tolkien@gmail.com");
+    Book potter = new Book("Harry Potter",2070541274);
+    Book hobbit = new Book("Hobbit",9780261102217);
+        
+    connection = DriverManager.getConnection(DB_URL);
+    Statement statement = connection.createStatement();
+    statement.execute(
+        "CREATE TABLE characters(name VARCHAR(40), proficiency int, strength int, dexterity int, constitution int, intelligence int, wisdom int, charisma int, PRIMARY KEY (name))");
+    statement.execute(
+        "CREATE TABLE skills(nameChar VARCHAR(40), nameSkill VARCHAR(40), PRIMARY KEY (nameChar,nameSkill), FOREIGN KEY (nameChar) REFERENCES characters(name) )");
+    
+    JdbcDaoFactory factory = JdbcDaoFactory(DbUrl.MySql);
+    Dao<Author> authorDao = factory.getAuthorDao();
+    authorDao.create(jkr);
+    authorDao.create(tolkien);
+    Dao<Book> bookDao = factory.getBookDao();
+    bookDao.create(potter);
+    bookDao.create(hobbit);
+```
 9. Donnez l'extrait de code qui récupère un auteur et affiche sa bibliographie.
 10. Donnez le code de la classe DaoJdbcFactory qui implémente le pattern Fabrique pour la création des DAO.
 11. Donnez le code de la classe DaoAbstractFactory qui implémente le pattern Fabrique Abstraite pour la création des DAO.
