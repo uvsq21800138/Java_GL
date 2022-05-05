@@ -8,7 +8,7 @@ import java.util.Optional;
 import library.Author;
 import library.Book;
 
-public class AuthorDao implements Dao<Author> {
+public class AuthorDao extends Dao<Author> {
   private final Connection connection;
 
   public AuthorDao(Connection connection) {
@@ -25,15 +25,15 @@ public class AuthorDao implements Dao<Author> {
 
       psInsert = connection.prepareStatement("INSERT INTO books VALUES(?, ?)");
       for (Book book : author.getBiblio()) {
-        psInsert.setString(1, book.getTitle());
-        psInsert.setInt(2, book.getIdISBN());
+        psInsert.setInt(1, book.getIdISBN());
+        psInsert.setString(2, book.getTitle());
         psInsert.executeUpdate();
       }
 
       psInsert = connection.prepareStatement("INSERT INTO write VALUES(?, ?)");
       for (Book book : author.getBiblio()) {
         psInsert.setString(1, author.getName());
-        psInsert.setString(2, book.getTitle());
+        psInsert.setInt(2, book.getIdISBN());
         psInsert.executeUpdate();
       }
 
@@ -45,9 +45,9 @@ public class AuthorDao implements Dao<Author> {
   }
 
   /**
-   * Lecture de la BD uniquement au premier niveau.
+   * Lecture de la BD uniquement les relation direct à l'auteur.
    *
-   * <p>L'auteur et ses livres avec leurs auteurs (seulement les noms).
+   * <p>L'auteur et ses livres (sans leurs autres auteurs).
    *
    * @param identifier nom de l'auteur
    * @return l'auteur créé avec les livres
@@ -57,31 +57,26 @@ public class AuthorDao implements Dao<Author> {
     Author author = null;
     Book book = null;
     try {
+      /* Recherche le l'auteur par son nom */
       PreparedStatement psInsert =
           connection.prepareStatement("SELECT * FROM authors WHERE name = ?");
       psInsert.setString(1, identifier);
       ResultSet rs = psInsert.executeQuery();
       if (rs.next()) {
+        /* Créé l'instance de l'auteur */
         author = new Author(rs.getString(1), rs.getString(2));
 
+        /* Recherche les livres écrits par l'auteur */
         psInsert = connection.prepareStatement("SELECT * FROM write WHERE author = ?");
         psInsert.setString(1, identifier);
         rs = psInsert.executeQuery();
         while (rs.next()) {
-          psInsert = connection.prepareStatement("SELECT * FROM books WHERE title = ?");
-          psInsert.setString(1, rs.getString(2));
+          /* Pour chaque livre, recherche son ISBN */
+          psInsert = connection.prepareStatement("SELECT * FROM books WHERE isbn = ?");
+          psInsert.setInt(1, rs.getInt(2));
           rs = psInsert.executeQuery();
           if (rs.next()) {
-            book = new Book(rs.getString(1), rs.getInt(2));
-
-            psInsert = connection.prepareStatement("SELECT * FROM write WHERE book = ?");
-            psInsert.setString(1, book.getTitle());
-            rs = psInsert.executeQuery();
-            while (rs.next()) {
-              psInsert = connection.prepareStatement("SELECT * FROM authors WHERE name = ?");
-              rs = psInsert.executeQuery();
-              book.addAuthor(new Author(rs.getString(1), rs.getString(2)));
-            }
+            book = new Book(rs.getString(2), rs.getInt(1), author);
           }
           author.addBook(book);
         }
@@ -108,15 +103,15 @@ public class AuthorDao implements Dao<Author> {
 
       ps = connection.prepareStatement("INSERT INTO books VALUES(?, ?)");
       for (Book book : author.getBiblio()) {
-        ps.setString(1, book.getTitle());
-        ps.setInt(2, book.getIdISBN());
+        ps.setInt(1, book.getIdISBN());
+        ps.setString(2, book.getTitle());
         ps.executeUpdate();
       }
 
       ps = connection.prepareStatement("INSERT INTO write VALUES(?, ?)");
       for (Book book : author.getBiblio()) {
         ps.setString(1, author.getName());
-        ps.setString(2, book.getTitle());
+        ps.setInt(2, book.getIdISBN());
         ps.executeUpdate();
       }
     } catch (SQLException e) {
@@ -131,8 +126,8 @@ public class AuthorDao implements Dao<Author> {
     try {
       for (Book book : author.getBiblio()) {
         if (book.getListAuthor().size() == 1) {
-          PreparedStatement ps = connection.prepareStatement("DELETE FROM books WHERE title = ?");
-          ps.setString(1, book.getTitle());
+          PreparedStatement ps = connection.prepareStatement("DELETE FROM books WHERE isbn = ?");
+          ps.setInt(1, book.getIdISBN());
           ps.executeUpdate();
         }
       }

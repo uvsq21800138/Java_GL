@@ -8,10 +8,11 @@ public class Book {
   private String title;
   private List<Author> listAuthor;
 
-  public Book(String title, Integer idISBN) {
+  public Book(String title, Integer idISBN, Author first) {
     this.title = title;
     this.idISBN = idISBN;
     this.listAuthor = new ArrayList<>();
+    this.listAuthor.add(first); // au moins 1 auteur
   }
 
   public Integer getIdISBN() {
@@ -30,6 +31,11 @@ public class Book {
     if(!listAuthor.contains(author)) listAuthor.add(author);
   }
 
+  /**
+   * Affiche les attributs du livre et la liste de ses auteurs (seulement les noms).
+   *
+   * @return une chaine de caractères
+   */
   @Override
   public String toString() {
     StringBuilder listA = new StringBuilder();

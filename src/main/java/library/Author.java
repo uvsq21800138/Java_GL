@@ -26,10 +26,15 @@ public class Author {
     return biblio;
   }
 
-  public void addBook(Book book)  {
-    if(!biblio.contains(book)) biblio.add(book);
+  public void addBook(Book book) {
+    if (!biblio.contains(book)) biblio.add(book);
   }
 
+  /**
+   * Affiche la bibliographie textuellement avec les détails du livre.
+   *
+   * @return une chaine de caractères
+   */
   public String biblioToString() {
     StringBuilder listB = new StringBuilder();
     for (Book b : biblio) {
@@ -38,8 +43,20 @@ public class Author {
     return listB.toString();
   }
 
+  /**
+   * Affiche les attributs du livre et la liste de ses auteurs (seulement les noms).
+   *
+   * @return une chaine de caractères
+   */
   @Override
   public String toString() {
-    return name + " : email=" + email + "; " + biblio.size() + " livres.";
+    return name
+        + " : email="
+        + email
+        + "; Livres{"
+        + biblioToString()
+        + "} "
+        + biblio.size()
+        + " livres.";
   }
 }

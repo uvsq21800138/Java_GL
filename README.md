@@ -57,39 +57,21 @@ L'application doit permettre :
 2. Donnez l'implémentation Java de la classe [Auteur](./src/main/java/library/Author.java). L'affichage des caractéristiques de l'auteur se fera avec la méthode toString.
 3. Faites de même pour la classe [Livre](./src/main/java/library/Book.java). 
 
-Dans la suite, on suppose l'existence de la classe abstraite [DAO<T>](./src/main/java/library/Dao.java) vue en cours. En particulier, vous supposerez que les tables sont présentes dans le SGBD.
-4. Proposez une implémentation Java pour une classe [Connexion](./src/main/java/library/dao/JdbcDaoFactory.java) gérant la connexion à un SGBD. Pour cela, vous vous appuierez sur le pattern Singleton. Vous réaliserez cette classe pour une connexion à MySQL sur localhost et la BD exam (utilisateur user, mot de passe passwd).
+Dans la suite, on suppose l'existence de la classe abstraite [DAO<T>](./src/main/java/library/dao/Dao.java) vue en cours. En particulier, vous supposerez que les tables sont présentes dans le SGBD.
+4. Proposez une implémentation Java pour une classe [Connexion](./src/main/java/library/dao/DaoAbstractFactory.java) gérant la connexion à un SGBD. Pour cela, vous vous appuierez sur le pattern Singleton (énumération des connections BD). Vous réaliserez cette classe pour une connexion à MySQL sur localhost et la BD exam (utilisateur user, mot de passe passwd).
 5. Donnez le squelette (déclaration et signature des méthodes) des classes DAO nécessaires.
-    JdbcDaoFactory ; AuthorDao ; BookDao
-6. Donnez l'implémentation de la méthode AuteurDAO.create qui rend persistant un auteur. En particulier, proposez une solution pour la persistance de l'association auteur-livre.
-    Solution à travers la table relationnel write.
-7. Donnez l'implémentation de la méthode AuteurDAO.find qui recherche un auteur à partir de son nom.
+> les classes DaoJdbcFactory ; AuthorDao ; BookDao
+6. Donnez l'implémentation de la méthode [AuteurDAO](./src/main/java/library/dao/AuthorDao.java).create qui rend persistant un auteur. En particulier, proposez une solution pour la persistance de l'association auteur-livre.
+> La relation auteur-livre est implémenté dans une table relationnel write.
+7. Donnez l'implémentation de la méthode [AuteurDAO](./src/main/java/library/dao/AuthorDao.java).find qui recherche un auteur à partir de son nom.
 
 Dans la suite, on suppose que les classes DAO sont totalement implémentées.
-8. Donnez l'extrait de code qui crée deux auteurs, les deux livres qu'ils ont écrits et rend les objets persistants.
-``` Java
-    Author jkr = new Author("JK. Rowling", "Jk.rowling@gmail.com");
-    Author tolkien = new Author("JRR. Tolkien", "Jrr.tolkien@gmail.com");
-    Book potter = new Book("Harry Potter",2070541274);
-    Book hobbit = new Book("Hobbit",9780261102217);
-        
-    connection = DriverManager.getConnection(DB_URL);
-    Statement statement = connection.createStatement();
-    statement.execute(
-        "CREATE TABLE characters(name VARCHAR(40), proficiency int, strength int, dexterity int, constitution int, intelligence int, wisdom int, charisma int, PRIMARY KEY (name))");
-    statement.execute(
-        "CREATE TABLE skills(nameChar VARCHAR(40), nameSkill VARCHAR(40), PRIMARY KEY (nameChar,nameSkill), FOREIGN KEY (nameChar) REFERENCES characters(name) )");
-    
-    JdbcDaoFactory factory = JdbcDaoFactory(DbUrl.MySql);
-    Dao<Author> authorDao = factory.getAuthorDao();
-    authorDao.create(jkr);
-    authorDao.create(tolkien);
-    Dao<Book> bookDao = factory.getBookDao();
-    bookDao.create(potter);
-    bookDao.create(hobbit);
-```
-9. Donnez l'extrait de code qui récupère un auteur et affiche sa bibliographie.
-10. Donnez le code de la classe DaoJdbcFactory qui implémente le pattern Fabrique pour la création des DAO.
-11. Donnez le code de la classe DaoAbstractFactory qui implémente le pattern Fabrique Abstraite pour la création des DAO.
+8. Donnez l'[extrait de code](./src/main/java/library/Main.java) qui crée deux auteurs, les deux livres qu'ils ont écrits et rend les objets persistants.
+9. Donnez l'[extrait de code](./src/main/java/library/Main.java) qui récupère un auteur et affiche sa bibliographie.
+10. Donnez le code de la classe [DaoJdbcFactory](./src/main/java/library/dao/DaoJdbcFactory.java) qui implémente le pattern Fabrique pour la création des DAO.
+11. Donnez le code de la classe [DaoAbstractFactory](./src/main/java/library/dao/DaoAbstractFactory.java) qui implémente le pattern Fabrique Abstraite pour la création des DAO.
 12. Quels changements faut-il apporter au code qui utilise ces DAO ?
+> J'ignore ce qui est a dire ici mais je ferais remarquer que la structure est "cyclique" entre les auteurs et les livres donc complexe à maintenir cohérente.
+> De plus il serait plus aisé d'avoir une "bibliothèque" (une liste des livres instanciés) dans l'execution.
 13. Donnez un diagramme de classes UML qui reprend l'ensemble des classes créées et leurs relations.
+> Trop complexe pour le faire proprement.

@@ -7,13 +7,13 @@ import java.util.Optional;
  *
  * @param <T> type d'objet
  */
-public interface Dao<T> {
+public abstract class Dao<T> {
 
-  boolean create(T objet);
+  public abstract boolean create(T objet);
 
-  Optional<T> find(String identifier);
+  public abstract Optional<T> find(String identifier);
 
-  boolean update(T objet);
+  public abstract boolean update(T objet);
 
-  void delete(T objet);
+  public abstract void delete(T objet);
 }

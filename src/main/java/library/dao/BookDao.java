@@ -4,11 +4,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import library.Author;
 import library.Book;
 
-public class BookDao implements Dao<Book> {
+public class BookDao extends Dao<Book> {
   private final Connection connection;
 
   public BookDao(Connection connection) {
@@ -19,8 +21,8 @@ public class BookDao implements Dao<Book> {
   public boolean create(Book book) {
     try {
       PreparedStatement psInsert = connection.prepareStatement("INSERT INTO books VALUES(?, ?)");
-      psInsert.setString(1, book.getTitle());
-      psInsert.setInt(2, book.getIdISBN());
+      psInsert.setInt(1, book.getIdISBN());
+      psInsert.setString(2, book.getTitle());
       psInsert.executeUpdate();
 
       psInsert = connection.prepareStatement("INSERT INTO authors VALUES(?, ?)");
@@ -33,7 +35,7 @@ public class BookDao implements Dao<Book> {
       psInsert = connection.prepareStatement("INSERT INTO write VALUES(?, ?)");
       for (Author author : book.getListAuthor()) {
         psInsert.setString(1, author.getName());
-        psInsert.setString(2, book.getTitle());
+        psInsert.setInt(2, book.getIdISBN());
         psInsert.executeUpdate();
       }
 
@@ -45,45 +47,44 @@ public class BookDao implements Dao<Book> {
   }
 
   /**
-   * Lecture de la BD uniquement au premier niveau.
+   * Lecture de la BD uniquement pour les relation direct au livre.
    *
-   * <p>L'auteur et ses livres avec leurs auteurs (seulement les noms).
+   * <p>Le livre avec son ou ses auteurs (sans leur bibliographie).
    *
-   * @param identifier nom de l'auteur
+   * @param identifier id ISBN de l'auteur sous forme de String
    * @return l'auteur créé avec les livres
    */
   @Override
   public Optional<Book> find(String identifier) {
     Author author = null;
     Book book = null;
+    List<Author> tmp = new ArrayList<>();
     try {
+      /* Recherche le livre par son titre */
       PreparedStatement psInsert =
-          connection.prepareStatement("SELECT * FROM books WHERE title = ?");
-      psInsert.setString(1, identifier);
-      ResultSet rs = psInsert.executeQuery();
-      if (rs.next()) {
-        book = new Book(rs.getString(1), rs.getInt(2));
-
+          connection.prepareStatement("SELECT * FROM books WHERE isbn = ?");
+      psInsert.setInt(1, Integer.valueOf(identifier));
+      ResultSet rs1 = psInsert.executeQuery();
+      if (rs1.next()) {
+        /* Recherche les auteurs associés au livre */
         psInsert = connection.prepareStatement("SELECT * FROM write WHERE book = ?");
-        psInsert.setString(1, book.getTitle());
-        rs = psInsert.executeQuery();
-        while (rs.next()) {
+        psInsert.setInt(1, rs1.getInt(1));
+        ResultSet rs2 = psInsert.executeQuery();
+        while (rs2.next()) {
+          /* Pour chaque auteur, recherche email */
           psInsert = connection.prepareStatement("SELECT * FROM authors WHERE name = ?");
-          psInsert.setString(1, rs.getString(1));
-          rs = psInsert.executeQuery();
-          if (rs.next()) {
-            author = new Author(rs.getString(1), rs.getString(2));
-
-            psInsert = connection.prepareStatement("SELECT * FROM write WHERE author = ?");
-            psInsert.setString(1, author.getName());
-            rs = psInsert.executeQuery();
-            while (rs.next()) {
-              psInsert = connection.prepareStatement("SELECT * FROM books WHERE title = ?");
-              rs = psInsert.executeQuery();
-              author.addBook(new Book(rs.getString(1), rs.getInt(2)));
-            }
+          psInsert.setString(1, rs2.getString(1));
+          ResultSet rs3 = psInsert.executeQuery();
+          if (rs3.next()) {
+            author = new Author(rs3.getString(1), rs3.getString(2));
           }
-          book.addAuthor(author);
+          /* conserve temporairement les auteur en liste */
+          tmp.add(author);
+        }
+        /* Créé l'instance du livre */
+        book = new Book(rs1.getString(2), rs1.getInt(1), tmp.get(0));
+        for (int i = 1; i < tmp.size(); i++) {
+          book.addAuthor(tmp.get(i));
         }
       }
     } catch (SQLException e) {
@@ -97,13 +98,13 @@ public class BookDao implements Dao<Book> {
   public boolean update(Book book) {
     try {
       PreparedStatement ps =
-          connection.prepareStatement("UPDATE books SET isbn = ? WHERE title = ?");
-      ps.setInt(1, book.getIdISBN());
-      ps.setString(2, book.getTitle());
+          connection.prepareStatement("UPDATE books SET title = ? WHERE isbn = ?");
+      ps.setString(1, book.getTitle());
+      ps.setInt(2, book.getIdISBN());
       ps.executeUpdate();
 
-      ps = connection.prepareStatement("DELETE FROM write WHERE author = ?");
-      ps.setString(1, book.getTitle());
+      ps = connection.prepareStatement("DELETE FROM write WHERE book = ?");
+      ps.setInt(1, book.getIdISBN());
       ps.executeUpdate();
 
       ps = connection.prepareStatement("INSERT INTO authors VALUES(?, ?)");
@@ -116,7 +117,7 @@ public class BookDao implements Dao<Book> {
       ps = connection.prepareStatement("INSERT INTO write VALUES(?, ?)");
       for (Author author : book.getListAuthor()) {
         ps.setString(1, author.getName());
-        ps.setString(2, book.getTitle());
+        ps.setInt(2, book.getIdISBN());
         ps.executeUpdate();
       }
     } catch (SQLException e) {
@@ -137,11 +138,11 @@ public class BookDao implements Dao<Book> {
         }
       }
       PreparedStatement ps = connection.prepareStatement("DELETE FROM write WHERE book = ?");
-      ps.setString(1, book.getTitle());
+      ps.setInt(1, book.getIdISBN());
       ps.executeUpdate();
 
-      ps = connection.prepareStatement("DELETE FROM books WHERE title = ?");
-      ps.setString(1, book.getTitle());
+      ps = connection.prepareStatement("DELETE FROM books WHERE isbn = ?");
+      ps.setInt(1, book.getIdISBN());
       ps.executeUpdate();
     } catch (SQLException e) {
       e.printStackTrace();
