@@ -2,7 +2,7 @@
 ## Exercice de Java (Pattern etc)
 >MIN17201 Programmation, Génie Logiciel et Preuve
 
-### Enoncée mai 2021 :
+### Énoncée mai 2021 :
 
 #### Exercice 1 (Pattern Builder): 
 Dans le package [book](./src/main/java/book) :
@@ -36,11 +36,38 @@ Dans le package [system](./src/main/java/system)
     ![Pattern Observateur](./uml/Pattern_Observer.png)
        
     Le diagramme de l'exercice (pas parfait mais général): 
-    ![Diagramme de classe](./uml/Diagramme_de_classe-Systeme.png)
+    ![Diagramme de classe](./uml/Diagramme_de_classe-Observateur.png)
 
 1. le code Java de la classe [Producteur](./src/main/java/system/Producteur.java)
 1. le code Java de la classe [Consommateur](./src/main/java/system/Consommateur.java)
 1. un test JUnit 4 illustrant un scénario : [lien](./src/test/java/system/ScenarioTest.java)
+
+### Enoncé 2018
+#### Exercice 3 (Pattern Commande)
+Dans cet exercice, vous développerez un jeu de [labyrinthe](./src/main/java/maze).
+L’utilisateur devra saisir une direction sous la forme d’une chaine (nord, est, ...) pour déplacer son personnage. 
+La saisie de "quit" quittera le jeu alors que "undo" annulera le dernier déplacement. 
+À chaque étape, le jeu affichera l’ensemble des déplacements effectués jusque-la (par exemple, nord, nord, est, sud).
+L’implémentation devra respecter le patron de conception Command. 
+Il n’est pas nécessaire d’implementer réellement le labyrinthe mais juste l’interaction avec l’utilisateur.
+1. Définissez l’interface [Action](./src/main/java/maze/Action.java) représentant les actions.
+    > Il y a une interface avec juste une fonction d'exécution.
+2. Définissez les actions liées aux [directions](./src/main/java/maze/Direction.java) qui implémentent l’interface précédente. 
+    Donnez les [tests unitaires](./src/test/java/maze/ActionTest.java) testant votre proposition.
+    > Les différentes actions sont prises en charge par la classe [ActionFactory](./src/main/java/maze/ActionFactory.java).
+    > Et les actions sont [ActionDo](./src/main/java/maze/ActionDo.java), [ActionUndo](./src/main/java/maze/ActionUndo.java) et [ActionQuit](./src/main/java/maze/ActionQuit.java)
+3. Définissez le singleton [Labyrinthe](./src/main/java/maze/Labyrinth.java) qui exécute les actions qu’on lui transmet. 
+    Dans notre cas, il suffit de mémoriser la séquence d’actions effectuées.
+    Donnez les [tests unitaires](./src/test/java/maze/LabyrinthTest.java) testant votre proposition.
+4. Définissez l’action undo qui annule le dernier déplacement.
+    Donnez les [tests unitaires](./src/test/java/maze/ActionTest.java) testant votre proposition.
+    > Dans les tests shouldUndoneTest() et shouldUndoneIfEmptyTest() en particulier.
+5. Implémentez le [programme principal](./src/main/java/maze/App.java) qui :
+    * attend la saisie de l’utilisateur 
+    * quitte le programme si demande
+    * construit une action et invoque le labyrinthe
+    * affiche la suite de déplacements
+    > La classe App appelle MazeIhm.run() et utilise une [Interface homme-machine (IHM)](./src/main/java/maze/MazeIhm.java).
 
 ### Enoncé 2017
 #### Exercice 3 (Persistence avec JDBC et Pattern DAO):
